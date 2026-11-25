@@ -11,7 +11,7 @@ The project simulates a small spiking network in which two thalamic inputs, a **
 ```
 project-4-adaptive-network/
 ├── src/project4_adaptive_network.m   # single script, produces every figure
-└── results/Figure_1.png ... Figure_16.png (Figures 9 and 10 are not used)
+└── results/Figure_1.png ... Figure_17.png, Figure_30.png (Figures 9, 10 and 18-29 are not used)
 ```
 
 Run `src/project4_adaptive_network.m` in MATLAB. Each question is a `%%` section. The two 60-minute runs (Q4 and Q5) simulate 3.6 million 1 ms steps each, in chunks of 100 stimuli, and write large `.mat` files (`q4_results.mat`, `q5_results.mat` and state files) next to the script. The Q4 section that follows (the `verNOp` runs) loads `q4_results.mat`. Those files are excluded from the repository by `.gitignore`.
@@ -59,42 +59,56 @@ Pairs are counted all-to-all, using exponentially decaying spike traces so the c
 
 | Question | What the code does | Figures |
 | --- | --- | --- |
-| Q1 | Inhomogeneous Poisson generator for a random rate around 40–50 sp/s. PSTH from 10 to 320 repeats against the true rate, and the RMSE against the number of repetitions. The RMSE falls from about 60 sp/s at 10 repeats to about 11 sp/s at 320, as expected from `1/√n`. | 1–2 |
-| Q2 | Oddball stream (14 S, one D as the 8th stimulus), 50 repeats, no plasticity: PSTHs of SP and L4 (10 ms bins). Both responses depress over the S stimuli, and the response to D is clearly larger than the S response just before it. | 3 |
+| Q1 | Inhomogeneous Poisson generator for a random rate around 40–50 sp/s. PSTH from 10 to 640 repeats against the true rate, and the RMSE against the number of repetitions. The RMSE falls from about 64 sp/s at 10 repeats to about 11 sp/s at 320 and about 8 sp/s at 640, roughly as `1/√n`. | 1–2 |
+| Q2 | Oddball stream (14 S, one D as the 8th stimulus), 50 repeats, no plasticity: PSTHs of SP and L4 (10 ms bins). Both responses depress over the S stimuli, and the response to D is larger than the S response just before it. | 3 |
 | Q3 | The same protocol with `τir` = 1000, 3000 and 10000 ms. Shorter `τir` gives weaker adaptation and a less distinct D response; longer `τir` gives strong adaptation, especially in L4. | 4–6 |
-| Q4 | 60 minutes of stimulation with S and D at probabilities 0.9 and 0.1, with plasticity. The weights are tracked over time, and `verNOp` is run at time points that the script detects from the weight curves (start, first rise of the thalamic weights, start of the SP → L4 decline, saturation of D → L4 and of S → L4, SP → L4 reaching its floor, and 5 minutes after that) and marks on the weight figure. | 7, 11–16 |
+| Q4 | 60 minutes of stimulation with S and D at probabilities 0.9 and 0.1, with plasticity. The weights are tracked over time, and `verNOp` is run at time points that the script detects from the weight curves (start, first rise of the thalamic weights, start of the SP → L4 decline, saturation of D → L4 and of S → L4, SP → L4 reaching its floor, and 5 minutes after that) and marks on the weight figure. A summary figure gives the spike count per trial in the 100 ms after each stimulus onset, for every time point. | 7, 11–17, 30 |
 | Q5 | The same 60 minutes with S and D equally likely. | 8 |
 
 ### Weight development (Q4)
 
 ![Synaptic weights over 60 minutes, p(D) = 0.1](results/Figure_7.png)
 
-- SP → L4 starts at its upper limit (0.11) and ends at its lower limit, while both thalamic synapses on L4 grow until they reach 0.4. A likely reason for the pruning of SP → L4 is that, once the thalamic synapses are strong, L4 tends to fire before SP does, so STDP depresses the SP synapse.
-- The time points, and the weights used at each of them, are printed in the title of each `verNOp` figure. Which of S → L4 and D → L4 leads depends on the random stimulus sequence of the run.
+In the run shown, D → L4 and S → L4 both start at 0.02 and are potentiated, D → L4 first (it reaches 0.4 at about 5.6 minutes) and S → L4 later (about 7.3 minutes). SP → L4 starts at its upper limit (0.11), stays there until the thalamic weights have grown, and then falls to its lower limit by about 9.5 minutes. After that the weights stay at their limits for the rest of the hour.
+
+A likely reason for the pruning of SP → L4 is that, once the thalamic synapses are strong, L4 tends to fire before SP does, so STDP depresses the SP synapse. This was not tested directly.
+
+The time points, and the weights used at each of them, are printed in the title of each `verNOp` figure. Which of S → L4 and D → L4 leads depends on the random stimulus sequence of the run, and the time points change from run to run.
 
 ### Oddball responses after learning (Q4)
 
-![Oddball responses at 15 minutes](results/Figure_16.png)
+The `verNOp` network is run with the weights frozen at each detected time point (Figures 11–17). To compare the time points without reading single PSTH peaks, which are noisy with 50 repeats, Figure 30 plots the spike count per trial in the 100 ms after each stimulus onset against the stimulus number (red line: the deviant, stimulus 8).
 
-At the last time point (SP → L4 at its floor, thalamic weights saturated) L4 is driven directly by the thalamic inputs. Its responses to S stay at about 30 to 50 sp/s across the stream, instead of decaying to about 10 sp/s as in the initial network (Figure 3), and the response to the deviant no longer stands out. Figures 11 to 15 show the intermediate stages.
+![Spikes per trial against stimulus number, one line per time point](results/Figure_30.png)
+
+For the run shown (time points 0.50, 2.59, 5.64, 5.69, 7.35, 9.46 and 14.46 minutes):
+
+- **Start (0.50 and 2.59 min, weights close to the initial ones).** L4 adapts strongly, from about 5 spikes per trial at stimulus 1 to well below 1 by stimulus 5. The deviant response is small.
+- **Just after D → L4 has been potentiated (5.64 and 5.69 min, D → L4 ≈ 0.38–0.40, S → L4 ≈ 0.11, SP → L4 ≈ 0.10).** The L4 response to the deviant is clearly above that to the preceding S, and so is the SP response. The enhanced response here comes from D → L4 being strong while S → L4 is not, not only from the D synapse being fresh. This is the clearest case of deviance detection after learning.
+- **Both thalamic weights saturated and SP → L4 near zero (7.35 min onward, last panel 14.46 min).** L4 is driven directly by the thalamus, and its responses to S stay high (about 1 to 2 spikes per trial) instead of adapting away. The deviant response no longer stands out from its neighbours.
+
+Counts at single stimuli are noisy (50 repeats), so differences of a few tenths of a spike between neighbouring stimuli should not be over-interpreted.
+
+![Oddball responses at the last time point](results/Figure_17.png)
 
 ### Equal stimulus probabilities (Q5)
 
 ![Synaptic weights over 60 minutes, p(D) = 0.5](results/Figure_8.png)
 
-When S and D are equally likely, the two thalamic synapses on L4 follow similar trajectories and saturate together, while SP → L4 is again pruned.
+When S and D are equally likely, the two thalamic synapses on L4 follow similar trajectories and saturate together, while SP → L4 is again pruned. In the p(D) = 0.1 run (Figure 7), D → L4 leads, so the two runs can be compared directly.
 
 ## Figure index
 
 | Figure | Content |
 | --- | --- |
-| 1 | PSTH estimation error versus number of repeats |
-| 2 | PSTH from 320 repeats against the true rate λ(t) |
+| 1 | PSTH estimation error versus number of repeats (10 to 640) |
+| 2 | PSTH from 640 repeats against the true rate λ(t) |
 | 3 | Oddball PSTHs of SP and L4 (initial weights, τir = 5000 ms) |
 | 4, 5, 6 | Oddball PSTHs for τir = 1000, 3000 and 10000 ms |
-| 7 | Synaptic weights over 60 minutes, p(D) = 0.1 |
+| 7 | Synaptic weights over 60 minutes, p(D) = 0.1, with the detected time points marked |
 | 8 | Synaptic weights over 60 minutes, p(D) = 0.5 |
-| 11 onwards | Oddball PSTHs (no plasticity) with the weights frozen at the detected time points of the Q4 run, one figure per time point |
+| 11–17 | Oddball PSTHs (no plasticity) with the weights frozen at the detected time points of the Q4 run, one figure per time point |
+| 30 | Spikes per trial in the 100 ms after each stimulus onset, against stimulus number, for SP and L4 and every time point |
 
 ## Notes
 
